@@ -1,2 +1,8 @@
-# Bondage-Club-GGTS-auto-answer
-Semi-automatic idle script for GGTS
+# GGTS半自动挂机脚本
+半自动GGTS自动挂机脚本（仍有一堆bug），AI写的我稍微改了一点，觉得有点用所以发出来分享
+本人非专业选手，代码靠ai和自学，欢迎交流、改进
+# 使用方法
+1、在运行脚本前带好未来联指手套（带手套会规避掉许多复杂操作）
+2、按f12，选择console
+3、将两个txt文件的代码粘贴后运行
+4、安心挂机！（但并不保证100%不违规，偶尔还是要看一看的）
