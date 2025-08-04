@@ -1,0 +1,100 @@
+console.log("✅ 私密聊天室自动响应脚本已激活");
+
+(function () {
+    const poseButtonMap = {
+        "跪下": "dialog-pose-button-grid-BodyLower-Kneel",
+        "起立": "dialog-pose-button-grid-BodyLower-BaseLower",
+        "打开双腿": "dialog-pose-button-grid-BodyLower-BaseLower",
+        "闭上双腿": "dialog-pose-button-grid-BodyLower-LegsClosed",
+        "轻抚(caress)自己": "CARESS_SPECIAL",
+        "GGTS移除了GSG-205159躯干上的拘束": "WEAR_BALLGAG"
+    };
+
+    let lastHandled = "";
+
+    function simulateCanvasClick(x, y) {
+        const canvas = document.getElementById("MainCanvas");
+        if (!canvas) return console.warn("找不到MainCanvas画布");
+
+        const rect = canvas.getBoundingClientRect();
+        const clientX = rect.left + x;
+        const clientY = rect.top + y;
+
+        ["mousedown", "mouseup", "click"].forEach(type => {
+            canvas.dispatchEvent(new MouseEvent(type, {
+                bubbles: true,
+                cancelable: true,
+                clientX,
+                clientY,
+                view: window
+            }));
+        });
+
+        console.log(`🖱️ 模拟点击坐标: (${x}, ${y})`);
+    }
+
+    function clickButtonById(id) {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.click();
+            console.log(`✅ 点击按钮: ${id}`);
+        } else {
+            console.warn(`⚠️ 找不到按钮: ${id}`);
+        }
+    }
+
+    function performExit() {
+        // 直接点击画布指定位置两次退出
+        simulateCanvasClick(636, 15.83);
+        setTimeout(() => simulateCanvasClick(636, 15.83), 100);
+    }
+
+    function performPoseAction(action) {
+        simulateCanvasClick(185, 131.83); // 打开Pose主菜单
+
+        if (action === "CARESS_SPECIAL") {
+            setTimeout(() => simulateCanvasClick(299, 96.83), 300);
+            setTimeout(() => simulateCanvasClick(554, 17.83), 600);
+            setTimeout(() => clickButtonById("dialog-activities-0-Caress"), 900);
+        } else {
+            setTimeout(() => clickButtonById("dialog-expression-menubar-next"), 300);
+            setTimeout(() => clickButtonById(action), 600);
+        }
+
+        setTimeout(performExit, 1200);
+    }
+
+    const chatLog = document.getElementById("TextAreaChatLog");
+    if (!chatLog) {
+        console.warn("⚠️ 未检测到聊天框，可能尚未进入聊天室");
+        return;
+    }
+
+    new MutationObserver(mutations => {
+        for (const m of mutations) {
+            for (const node of m.addedNodes) {
+                if (node.nodeType !== Node.ELEMENT_NODE) continue;
+                const text = node.innerText;
+                if (!text || text === lastHandled) continue;
+
+                lastHandled = text;
+
+                for (const keyword in poseButtonMap) {
+                    if (text.includes(keyword)) {
+                        const action = poseButtonMap[keyword];
+                        if (action === "WEAR_BALLGAG") {
+                            console.log("🎯 识别到“移除拘束”，自动戴上联指手套");
+                            InventoryWear(Player, "FuturisticGloves", "ItemArms", "Default");
+
+                        } else {
+                            performPoseAction(action);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }).observe(chatLog, { childList: true, subtree: true });
+
+    console.log("✅ 自动动作响应监听中（含口塞自动戴上）");
+})();

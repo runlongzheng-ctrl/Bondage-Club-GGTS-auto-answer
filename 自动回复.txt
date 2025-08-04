@@ -1,0 +1,72 @@
+(function () {
+    const responseMap = {
+        "GGTS代表什么": "Good Girl Training System.",
+        "你有自由意志么": "I don't have free will.",
+        "你是谁": "I'm a good slave.",
+        "你爱GGTS主人么": "I love Master GGTS.",
+        "你是否屈服于GGTS主人": "I surrender to Master GGTS.",
+        "谁掌控一切": "Master GGTS is in control.",
+        "你服从于谁": "I serve and obey Master GGTS.",
+        "GGTS主人会失败么": "Master GGTS cannot fail.",
+        "你配得上做我的奴隶么": "I strive to be slave worthy."
+
+    };
+
+    const poseMap = {
+
+    };
+
+    let lastHandled = "";
+
+    function sendMessage(msg) {
+        const input = document.getElementById("InputChat");
+        if (input) {
+            input.value = msg;
+            ChatRoomSendChat();
+        }
+    }
+
+    function changePose(poseName) {
+        ServerSend("ChatRoomCharacterPoseUpdate", { Pose: poseName });
+    }
+
+    // 启动 DOM 观察器
+    const chatLog = document.getElementById("TextAreaChatLog");
+    if (!chatLog) {
+        console.warn("⚠️ 无法找到聊天框。请确认已进入聊天界面后再执行脚本。");
+        return;
+    }
+
+    const observer = new MutationObserver(mutations => {
+        for (const mutation of mutations) {
+            for (const node of mutation.addedNodes) {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    const text = node.innerText;
+                    if (!text || text === lastHandled || text.includes(Player.Name)) continue;
+
+                    lastHandled = text;
+
+                    // 检查关键词（动作优先）
+                    for (const keyword in poseMap) {
+                        if (text.includes(keyword)) {
+                            sendMessage("*" + keyword + "*");
+                            changePose(poseMap[keyword]);
+                            return;
+                        }
+                    }
+
+                    for (const keyword in responseMap) {
+                        if (text.includes(keyword)) {
+                            sendMessage(responseMap[keyword]);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    observer.observe(chatLog, { childList: true, subtree: true });
+
+    console.log("✅ 私密聊天室自动响应脚本已激活");
+})();
